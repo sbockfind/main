@@ -26,11 +26,13 @@ Given two time series (in this case, two channels of sEEG data), a Granger Causa
 # Process
 
 ## Simulating Data
-Creating some sample/simulated data. The complete dataset contains 7 seconds at 1024hz. 
+I want to start by creating some random data. The complete dataset contains 7 seconds at 1024hz. The code iterates through this line to create a time series.
 ```python
 r.append(0.5 * r[-1] + np.random.rand())  # Append a new point: 50% of the last point plus a random value, simulating realistic, noisy data progression.
 ```
-Forcing causality in the simulated data. First, a given channel is copied to another row, and some random noise is added. 
+To test if the program can find causality, I create artificial, and predictable, causality in the data. 
+
+First, a given channel is copied to another row, and some random noise is added. 
 ```python
 independent_channel = 1
 dependent_channel = 5
@@ -62,7 +64,31 @@ for sample in range(np.shape(data)[1]):
 #  roll data by given lags
 forced_data[dependent_channel, :] = np.roll(data[dependent_channel, :], lag)
 ```
+Using different methods for a few different pairs creates some variation in how obvious the forced causality is. In the chart above, the causality is very apparent (red circles), but other methods make it harder to point out. The goal is to test if the program can pick out causality among more noise. 
 
+
+## Likelihood Ratio Test: lrtest()
+
+This function is crucial in determining if one time series provides significant predictive power for another, beyond what is offered by its own past values. It is extracted from the statsmodels grangercausalitytests() function.
+
+
+Two Models are defined - one without the lagged values of the second variable (dtaown) and one with them (dtajoint).
+```python
+dtaown = add_constant(dta[:, 1: (lag + 1)], prepend=False)
+dtajoint = add_constant(dta[:, 1:], prepend=False)
+```
+OLS Models: Ordinary Least Squares (OLS) regression is run on both models, then the likelihood ratio test is computed, comparing the log-likelihoods of the two models.
+```python
+res2down = OLS(dta[:, 0], dtaown).fit()
+res2djoint = OLS(dta[:, 0], dtajoint).fit()
+
+lr = -2 * (res2down.llf - res2djoint.llf)
+```
+I am interested in the P-value, which indicates the statistical significance of the likelihood ratio. A low p-value (less than 0.05) suggests that the lagged values of the second time series provide significant predictive power for the first time series, indicating a Granger causality relationship.
+
+## Granger Analyzer
+
+The main loop of the program runs data through a function to determine 
 
 
 
