@@ -128,9 +128,11 @@ Method 2 (average) is used **twice** from channels 3 to 7. Data was rolled 7 lag
     <img src="https://github.com/sbockfind/main/blob/main/sim_data_order.png" alt="Order" width="45%">
 </div>
 
+*Output: Likelihoods (Left), Order (Right)*
+
 The results show that the script can accurately identify the forced causality relationships. The likelihood of 8 corresponds to the inverse log of 0.00000001, the offset created earlier, meaning that the p-value produced by lrtest() is zero.
 
-The script also (almost) picks out the correct lag for each case. Because of how strong (or obvious) the causality is, the latest() returns very high likelihood for lags near
+The script also (almost) picks out the correct lag for each case. Because of how strong (or obvious) the causality is, the latest() returns very high likelihoods for lags surrounding the user-set lag. It returns p-value of zero for lag 1, which is automatically the max.
 
 ![Granger Causality Value](https://github.com/sbockfind/main/blob/main/sim_data_gc.png)
 
