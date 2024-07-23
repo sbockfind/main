@@ -6,7 +6,7 @@ Given two time series (in this case, two channels of sEEG data), a Granger Causa
 
 # Process
 
-## Simulating Data
+### Simulating Data
 I want to start by creating some random data. The complete dataset contains 7 seconds at 1024hz. The code iterates through this line to create a time series.
 ```python
 r.append(0.5 * r[-1] + np.random.rand())  # Append a new point: 50% of the last point plus a random value, simulating realistic, noisy data progression.
@@ -48,7 +48,7 @@ forced_data[dependent_channel, :] = np.roll(data[dependent_channel, :], lag)
 Using different methods for a few different pairs creates some variation in how obvious the forced causality is. In the chart above, the causality is very apparent (red circles), but other methods make it harder to point out. The goal is to test if the program can pick out causality among more noise. 
 
 
-## Likelihood Ratio Test: `lrtest()`
+### Likelihood Ratio Test: `lrtest()`
 
 This function is crucial in determining if one time series provides significant predictive power for another, beyond what is offered by its own past values. It is extracted from the statsmodels grangercausalitytests() function.
 
@@ -67,7 +67,7 @@ lr = -2 * (res2down.llf - res2djoint.llf)
 ```
 I am interested in the P-value, which indicates the statistical significance of the likelihood ratio. A low p-value (less than 0.05) suggests that the lagged values of the second time series provide significant predictive power for the first time series, indicating a Granger causality relationship. Granger Causality Calculation: The function calculates the Granger Causality value for the specified pair of channels.
 
-## Granger Analyzer `calc_epoch_granger_causality_ij()`
+### Granger Analyzer `calc_epoch_granger_causality_ij()`
 
 The program uses the `GrangerAnalyzer` class from the `nitime` package to estimate the causality between different time series. This identifies how changes in one time series can predict changes in another.
 
@@ -83,38 +83,31 @@ G = nta.GrangerAnalyzer(time_series, order=int(order))
 gc_val = np.nanmean(G.causality_xy[0, 1, freq_idx_G], -1)
 gc_val = gc_val if not np.isnan(gc_val) else 0
 ```
-## Main Loop `nitime_granger()
+### Main Loop `nitime_granger()`
 
-The function first defines the seizure onset and cuts the data around this point to create the time window for analysis.
+The function first cuts the data around the "seizure onset" to create the time window for analysis.
 
-```python
-
-seizure_onset = int(2 * sfreq)
-data_start = seizure_onset - int(duration / 2 * sfreq)
-data_end = data_start + int(duration * sfreq)
-cut_data = data[:, data_start:data_end]
-```
-Likelihood Ratio Test: For each combination of channels, the function performs the likelihood ratio test to find the best likelihood and the corresponding lag order.
-
+For each combination of channels, the function performs the likelihood ratio test. It also saves the lag at which the highest likelihood occurs.
 
 ```python
 for lag in range(maxlag):
     lr = lrtest(cut_data[i, :], cut_data[j, :], lag)[1]
-    lr = -np.log10(lr + 0.00000001)
+    lr = -np.log10(lr + 0.00000001) # add a small amount to account for zeros
     
     if lr > best_likelihood[i, j, duration]:
         best_likelihood[i, j, duration] = lr
         order_best_likelihood[i, j, duration] = lag
 ```
 
-If the p-value from the likelihood ratio test is significant, the function calculates the Granger Causality value.
+The function calculates the Granger Causality value if the p-value from the likelihood ratio test `lr` is significant.
 
-
+```python
 if best_likelihood[i, j, duration] > -np.log10(0.050000001):
     nta_gc[i, j, duration] = calc_epoch_granger_causality_ij(cut_data, i, j,
                                                              order_best_likelihood[i, j, duration],
                                                              sfreq)
+```
+The program outputs data for the Granger values, maximum likelihoods, and the lag at which they occur.
 
-The data is first cropped down to a few channels from each electrode (e.g. LFIa01-LFIa02, LFIa08-LFIa09, and LFIa15-LFIa16) and 4 seconds of data: 2 seconds on either side of the seizure onset. The cropped data contains the resected area corresponding to: RFM08-RFM09, RFM09-RFM10. Each combination of channels is run through a Likelihood Ratio (LR) test, pulled out of the statsmodels grangercausalitytests() function. Only the highest likelihood and the order (or lag) at which it occurs are kept.
-	When the highest likelihood is significant at 95% confidence, a GC test is run for that combination at the order recorded. (the function used is calc_epoch_granger_causality_ij(), which uses the nitime GrangerAnalyzer())
-	The program then compares centrality measures event_critical_nodes() and nx’s weighted_out_degree_centrality.
+# Output Analysis
+
