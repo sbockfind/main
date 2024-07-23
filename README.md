@@ -11,7 +11,7 @@ I want to start by creating some random data. The complete dataset contains 7 se
 ```python
 r.append(0.5 * r[-1] + np.random.rand())  # Append a new point: 50% of the last point plus a random value, simulating realistic, noisy data progression.
 ```
-To test if the program can find causality, I create artificial, and predictable, causality in the data. 
+To test if the script can find causality, I create artificial, and predictable, causality in the data. 
 
 Method 1: `copy`
 First, a given channel is copied to another row, and some random noise is added. 
@@ -47,7 +47,7 @@ for sample in range(np.shape(data)[1]):
 #  roll data by given lags
 forced_data[dependent_channel, :] = np.roll(data[dependent_channel, :], lag)
 ```
-Using different methods for a few different pairs creates some variation in how obvious the forced causality is. In the chart above, the causality is very apparent (red circles), but other methods make it harder to point out. The goal is to test if the program can pick out causality among more noise. 
+Using different methods for a few different pairs creates some variation in how obvious the forced causality is. In the chart above, the causality is very apparent (red circles), but other methods make it harder to point out. The goal is to test if the script can pick out causality among more noise. 
 
 
 ### Likelihood Ratio Test: `lrtest()`
@@ -71,7 +71,7 @@ I am interested in the P-value, which indicates the statistical significance of 
 
 ### Granger Analyzer `calc_epoch_granger_causality_ij()`
 
-The program uses the `GrangerAnalyzer` class from the `nitime` package to estimate the causality between different time series. This identifies how changes in one time series can predict changes in another.
+The script uses the `GrangerAnalyzer` class from the `nitime` package to estimate the causality between different time series. This identifies how changes in one time series can predict changes in another.
 
 The function creates a TimeSeries object from two channels, then runs GrangerAnalyzer for a specified lag order.
 
@@ -109,19 +109,28 @@ if best_likelihood[i, j, duration] > -np.log10(0.050000001):
                                                              order_best_likelihood[i, j, duration],
                                                              sfreq)
 ```
-The program outputs data for the Granger values, maximum likelihoods, and the lag at which they occur.
+The script outputs data for the Granger values, maximum likelihoods, and the lag at which they occur.
 
 # Output Analysis
-The output of the Granger Causality analysis is crucial in validating the effectiveness of the code. The results demonstrate that the program can accurately identify the forced causality relationships set by the user. By analyzing the output matrices, we can observe how well the code picks up on the artificial causal links introduced in the data, even amidst varying levels of noise. This section will delve into the details of interpreting the output and assessing the accuracy of the causality detection.
+The output of the Granger Causality analysis is crucial in validating the effectiveness of the code. The results demonstrate that the script can accurately identify the forced causality relationships set by the user. By analyzing the output matrices, we can observe how well the code picks up on the artificial causal links introduced in the data, even amidst varying levels of noise. This section will delve into the details of interpreting the output and assessing the accuracy of the causality detection.
 
 
-For testing simulated data, causality is forced using method 1 (copy) from channels 1 to 5, and method 2 (average) from channels 1 to 6. Method 2 is used twice from channels 3 to 7. Three total combinations are forced
+For testing simulated data, three forced cases are created: 
+
+Method 1 (copy) from channels 1 to 5, and rolled 2 lags.
+
+Method 2 (average) from channels 1 to 6, rolled 2 lags. 
+
+Method 2 (average) is used **twice** from channels 3 to 7. Data was rolled 7 lags for the 1st average, and 3 for the second. (Causality should appear at lags 10 and 3, and the script should choose lag 3 as the highest) 
 
 <div style="display: flex; justify-content: space-around;">
     <img src="https://github.com/sbockfind/main/blob/main/sim_data_likelihood.png" alt="Likelihood" width="45%">
     <img src="https://github.com/sbockfind/main/blob/main/sim_data_order.png" alt="Order" width="45%">
 </div>
-The results show that the program can accurately identify the forced causality relationships. 
+
+The results show that the script can accurately identify the forced causality relationships. The likelihood of 8 corresponds to the inverse log of 0.00000001, the offset created earlier, meaning that the p-value produced by lrtest() is zero.
+
+The script also (almost) picks out the correct lag for each case. Because of how strong (or obvious) the causality is, the latest() returns very high likelihood for lags near
 
 ![Granger Causality Value](https://github.com/sbockfind/main/blob/main/sim_data_gc.png)
 
