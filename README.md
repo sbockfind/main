@@ -111,3 +111,8 @@ The program outputs data for the Granger values, maximum likelihoods, and the la
 
 # Output Analysis
 
+![Granger Causality Value](https://github.com/sbockfind/main/blob/main/sim_data_gc.png)
+
+
+![Likelihood](https://github.com/sbockfind/main/blob/main/sim_data_likelihood.png)
+![Order](https://github.com/sbockfind/main/blob/main/sim_data_order.png)
