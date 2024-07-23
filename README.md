@@ -13,6 +13,7 @@ r.append(0.5 * r[-1] + np.random.rand())  # Append a new point: 50% of the last 
 ```
 To test if the program can find causality, I create artificial, and predictable, causality in the data. 
 
+Method 1: `copy`
 First, a given channel is copied to another row, and some random noise is added. 
 ```python
 independent_channel = 1
@@ -31,6 +32,7 @@ The result is a straightforward causal relationship, where a change in the first
 
 ![Simulated vs Real Data](https://github.com/sbockfind/main/blob/main/Figure%202024-07-10%20192428.png)
 
+Method 2: `Average`
 Another method of forcing causality. Some of the information of the dependent channel was kept by averaging the dependent and independent channels, again adding noise and 'rolling' the data.
 
 ```python
@@ -110,13 +112,17 @@ if best_likelihood[i, j, duration] > -np.log10(0.050000001):
 The program outputs data for the Granger values, maximum likelihoods, and the lag at which they occur.
 
 # Output Analysis
+The output of the Granger Causality analysis is crucial in validating the effectiveness of the code. The results demonstrate that the program can accurately identify the forced causality relationships set by the user. By analyzing the output matrices, we can observe how well the code picks up on the artificial causal links introduced in the data, even amidst varying levels of noise. This section will delve into the details of interpreting the output and assessing the accuracy of the causality detection.
 
-![Granger Causality Value](https://github.com/sbockfind/main/blob/main/sim_data_gc.png)
+
+For testing simulated data, causality is forced using method 1 (copy) from channels 1 to 5, and method 2 (average) from channels 1 to 6. Method 2 is used twice from channels 3 to 7. Three total combinations are forced
+
 <div style="display: flex; justify-content: space-around;">
     <img src="https://github.com/sbockfind/main/blob/main/sim_data_likelihood.png" alt="Likelihood" width="45%">
     <img src="https://github.com/sbockfind/main/blob/main/sim_data_order.png" alt="Order" width="45%">
 </div>
+The results show that the program can accurately identify the forced causality relationships. 
 
-
+![Granger Causality Value](https://github.com/sbockfind/main/blob/main/sim_data_gc.png)
 
 
